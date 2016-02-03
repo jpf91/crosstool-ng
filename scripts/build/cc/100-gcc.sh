@@ -573,6 +573,10 @@ do_gcc_core_backend() {
     if [ -f "${prefix}/bin/${CT_TARGET}-gcc${ext}" ]; then
         CT_DoExecLog ALL ln -sfv "${CT_TARGET}-gcc${ext}" "${prefix}/bin/${CT_TARGET}-cc${ext}"
     fi
+    # Native compilers provide gcc without extension as well
+    if [ -f "${prefix}/bin/gcc${ext}" ]; then
+        CT_DoExecLog ALL ln -sfv "gcc${ext}" "${prefix}/bin/cc${ext}"
+    fi
 
     if [ "${CT_MULTILIB}" = "y" ]; then
         if [ "${CT_CANADIAN}" = "y" -a "${mode}" = "baremetal" \
