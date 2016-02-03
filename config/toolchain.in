@@ -4,12 +4,13 @@ comment "General toolchain options"
 
 config FORCE_SYSROOT
     bool
-    default y if !OBSOLETE
+    default y if !OBSOLETE && (CROSS || CANADIAN || WINDOWS)
     select USE_SYSROOT
 
 config USE_SYSROOT
     bool
     prompt "Use sysroot'ed toolchain"
+    depends on CROSS || CANADIAN || WINDOWS
     default y
     help
       Use the 'shinny new' sysroot feature of gcc: libraries split between
@@ -156,7 +157,7 @@ choice
 
 config NATIVE
     bool
-    prompt "Native       (NO CODE!) (EXPERIMENTAL)"
+    prompt "Native       (EXPERIMENTAL)"
     depends on EXPERIMENTAL
     help
       Build a native toolchain.
@@ -171,7 +172,7 @@ config CROSS
 
 config CROSS_NATIVE
     bool
-    prompt "Cross-native (NO CODE!) (EXPERIMENTAL)"
+    prompt "Cross-native (EXPERIMENTAL)"
     depends on EXPERIMENTAL
     help
       Build a cross-native toolchain.
@@ -301,6 +302,34 @@ config HOST_SUFFIX
       not find some of the tool.
 
 endif # CANADIAN
+
+if NATIVE
+
+comment "Native options"
+
+config BOOTSTRAP_COMPILER
+    bool
+    prompt "|  Bootstrap compiler"
+    default n
+    help
+      Allows enabling bootstrap.
+      Might produce a faster compiler but is known to break static toolchain builds.
+
+endif # NATIVE
+
+if CROSS_NATIVE
+
+comment "Cross-native options"
+
+config INSTALL_BINUTILS
+    bool
+    prompt "|  Install Binutils"
+    default y
+    help
+      Allows to disable installing binutils into the final directory.
+      Use if you want to ship only gcc/gdb or similar.
+
+endif # CROSS_NATIVE
 
 comment "Misc options"
 

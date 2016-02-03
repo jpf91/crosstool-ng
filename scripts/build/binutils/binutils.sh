@@ -50,7 +50,7 @@ do_binutils_for_build() {
     local -a binutils_opts
 
     case "${CT_TOOLCHAIN_TYPE}" in
-        native|cross)   return 0;;
+        native|cross|cross-native)   return 0;;
     esac
 
     CT_DoStep INFO "Installing binutils for build"
@@ -60,6 +60,7 @@ do_binutils_for_build() {
     binutils_opts+=( "prefix=${CT_BUILDTOOLS_PREFIX_DIR}" )
     binutils_opts+=( "cflags=${CT_CFLAGS_FOR_BUILD}" )
     binutils_opts+=( "ldflags=${CT_LDFLAGS_FOR_BUILD}" )
+    binutils_opts+=( "sysroot=${BINUTILS_SYSROOT_ARG}" )
 
     do_binutils_backend "${binutils_opts[@]}"
 
@@ -85,10 +86,32 @@ do_binutils_for_host() {
     local -a binutils_tools
     local -a binutils_opts
 
+    if [ "${CT_TOOLCHAIN_TYPE}" = "cross-native" -a "${CT_INSTALL_BINUTILS}" != "y" ]; then
+         return 0
+    fi
+
+    if [ "${CT_TOOLCHAIN_TYPE}" = "native" ]; then
+         return 0
+    fi
+
     CT_DoStep INFO "Installing binutils for host"
     CT_mkdir_pushd "${CT_BUILD_DIR}/build-binutils-host-${CT_HOST}"
 
     binutils_opts+=( "host=${CT_HOST}" )
+    case "${CT_TOOLCHAIN_TYPE}" in
+        cross-native|native)
+            case "${CT_HOST}" in
+                *mingw*)
+                    binutils_opts+=( "target=${CT_TARGET}" )
+                    binutils_opts+=( "sysroot=${BINUTILS_SYSROOT_ARG}" )
+                ;;
+            esac
+            ;;
+        *)
+            binutils_opts+=( "target=${CT_TARGET}" )
+            binutils_opts+=( "sysroot=${BINUTILS_SYSROOT_ARG}" )
+            ;;
+    esac
     binutils_opts+=( "prefix=${CT_PREFIX_DIR}" )
     binutils_opts+=( "static_build=${CT_STATIC_TOOLCHAIN}" )
     binutils_opts+=( "cflags=${CT_CFLAGS_FOR_HOST}" )
@@ -153,6 +176,7 @@ do_binutils_for_host() {
 #     cflags        : cflags to use             : string    : (empty)
 #     ldflags       : ldflags to use            : string    : (empty)
 #     build_manuals : whether to build manuals  : bool      : no
+#     sysroot       : sysroot arguments         : string    : (empty)
 do_binutils_backend() {
     local host
     local prefix
@@ -164,6 +188,7 @@ do_binutils_backend() {
     local -a extra_make_flags
     local -a manuals_for
     local -a manuals_install
+    local sysroot
     local arg
 
     for arg in "$@"; do
@@ -224,7 +249,7 @@ do_binutils_backend() {
         --disable-werror                                        \
         "${extra_config[@]}"                                    \
         ${CT_ARCH_WITH_FLOAT}                                   \
-        ${BINUTILS_SYSROOT_ARG}                                 \
+        ${sysroot}                                              \
         "${CT_BINUTILS_EXTRA_CONFIG_ARRAY[@]}"
 
     if [ "${static_build}" = "y" ]; then

@@ -78,6 +78,14 @@ do_kernel_headers() {
     local kernel_path
     local kernel_arch
 
+    if [ "${CT_TOOLCHAIN_TYPE}" = "cross-native" ]; then
+        return 0
+    fi
+
+    if [ "${CT_TOOLCHAIN_TYPE}" = "native" ]; then
+         return 0
+    fi
+
     CT_DoStep INFO "Installing kernel headers"
 
     mkdir -p "${CT_BUILD_DIR}/build-kernel-headers"

@@ -85,6 +85,14 @@ do_libc_backend() {
     local hdr
     local arg
 
+    if [ "${CT_TOOLCHAIN_TYPE}" = "cross-native" ]; then
+        return 0
+    fi
+
+    if [ "${CT_TOOLCHAIN_TYPE}" = "native" ]; then
+         return 0
+    fi
+
     for arg in "$@"; do
         eval "${arg// /\\ }"
     done
