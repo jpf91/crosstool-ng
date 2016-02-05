@@ -1002,6 +1002,10 @@ do_gcc_backend() {
     if [ -f "${CT_PREFIX_DIR}/bin/${CT_TARGET}-gcc${ext}" ]; then
         CT_DoExecLog ALL ln -sfv "${CT_TARGET}-gcc${ext}" "${CT_PREFIX_DIR}/bin/${CT_TARGET}-cc${ext}"
     fi
+    # Native compilers provide gcc without extension as well
+    if [ -f "${CT_PREFIX_DIR}/bin/gcc${ext}" ]; then
+        CT_DoExecLog ALL ln -sfv "gcc${ext}" "${CT_PREFIX_DIR}/bin/cc${ext}"
+    fi
 
     if [ "${CT_MULTILIB}" = "y" ]; then
         if [ "${CT_CANADIAN}" = "y" ]; then
